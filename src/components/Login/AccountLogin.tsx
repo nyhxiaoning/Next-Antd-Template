@@ -1,16 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { currentUser, login } from '@/services/api';
-import { getFakeImageCaptcha } from '@/services/api';
 import { Button, Form, Image, Input, message } from 'antd';
 import {
   HourglassOutlined,
   LockOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import React, { useCallback, useEffect, useState } from 'react';
+import { currentUser, login } from '@/services/api';
+
 import { generateUUID } from '@/lib/utils';
-import { useAuthContext } from '@/components/Provider/AuthContext';
+import { getFakeImageCaptcha } from '@/services/api';
 import { setAccessToken } from '@/lib/cache';
+import { useAuthContext } from '@/components/Provider/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface FormLoginProps {
   redirect: string;
@@ -24,6 +25,7 @@ const AccountLogin: React.FC<FormLoginProps> = ({ redirect }) => {
   const { setUser } = useAuthContext();
 
   const onFinish = async (values: any) => {
+    debugger;
     setLoading(true);
     try {
       const response: any = await login({
@@ -33,12 +35,25 @@ const AccountLogin: React.FC<FormLoginProps> = ({ redirect }) => {
       });
 
       const user = await currentUser();
+      console.log(
+        user,
+        'user----user这里将用户信息，没有正确存入数据库，暂时使用假数据'
+      );
+      // 没有查到数据也算
       if (user) {
         setUser(user);
         message.success('登录成功！');
-        setAccessToken(response.accessToken);
-        router.replace(redirect);
+        // TODO:这里token暂时，注释掉，内容配置暂时没有，后续需要修改，等待完整版
+        // setAccessToken(response.accessToken);
+        // router.replace(redirect);
       }
+      // 模拟家数据
+      setUser(user);
+      message.success('登录成功！');
+      // 写死一个假的accessToken，默认让数据可以正常使用，返回值在中间件这里判断可以使用。
+      // TODO:这里可以测试一下
+      setAccessToken('123456');
+      router.replace(redirect);
     } catch (error) {
       message.error(`登录失败: ${error}`);
     } finally {
@@ -93,7 +108,7 @@ const AccountLogin: React.FC<FormLoginProps> = ({ redirect }) => {
         </Form.Item>
         <Form.Item
           name='captcha'
-          rules={[{ required: true, message: '请输入验证码!' }]}
+          rules={[{ required: false, message: '请输入验证码!' }]}
         >
           <div
             style={{
